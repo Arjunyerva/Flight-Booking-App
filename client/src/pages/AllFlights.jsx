@@ -9,7 +9,7 @@ const AllFlights = () => {
   
     
     const fetchFlights = async () =>{
-      await axios.get('http://localhost:6001/fetch-flights').then(
+      await axios.get('https://flight-booking-app-backend-ea6i.onrender.com/fetch-flights').then(
         (response)=>{
           setFlights(response.data);
           console.log(response.data)
@@ -61,5 +61,6 @@ const AllFlights = () => {
       </div>
     )
   }
+
 
 export default AllFlights
