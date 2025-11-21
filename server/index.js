@@ -1,30 +1,34 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
 import { User, Booking, Flight } from './schemas.js';
 
 const app = express();
-dotenv.config();
 
 app.use(express.json());
 app.use(bodyParser.json({limit: "30mb", extended: true}))
 app.use(bodyParser.urlencoded({limit: "30mb", extended: true}));
 app.use(cors());
 
-// mongoose setup
-
+// Get environment variables directly
 const PORT = process.env.PORT || 6001;
 const DB_URI = process.env.MONGODB_URI;
 
+// Validate environment variables
+if (!DB_URI) {
+    console.error('❌ MONGODB_URI environment variable is not set');
+    process.exit(1);
+}
+
+// mongoose setup
 mongoose.connect(DB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 }).then(()=>{
 
-    console.log('Connected to MongoDB successfully');
+    console.log('✅ Connected to MongoDB successfully');
 
     // All the client-server activites
 
@@ -307,13 +311,11 @@ mongoose.connect(DB_URI, {
     })
 
 
-
-
-
-
     app.listen(PORT, ()=>{
-        console.log(`Running @ ${PORT}`);
+        console.log(`✅ Server running on port ${PORT}`);
     });
-}
 
-).catch((e)=> console.log(`Error in db connection ${e}`));
+}).catch((e)=> {
+    console.error(`❌ Error in db connection: ${e}`);
+    process.exit(1);
+});
