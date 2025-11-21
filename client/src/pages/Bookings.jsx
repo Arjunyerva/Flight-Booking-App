@@ -14,14 +14,14 @@ const Bookings = () => {
   }, [])
 
   const fetchBookings = async () =>{
-    await axios.get('http://localhost:6001/fetch-bookings').then(
+    await axios.get('https://flight-booking-app-backend-ea6i.onrender.com/fetch-bookings').then(
       (response)=>{
         setBookings(response.data.reverse());
       }
     )
   }
   const cancelTicket = async (id) =>{
-    await axios.put(`http://localhost:6001/cancel-ticket/${id}`).then(
+    await axios.put(`https://flight-booking-app-backend-ea6i.onrender.com/cancel-ticket/${id}`).then(
       (response)=>{
         alert("Ticket cancelled!!");
         fetchBookings();
@@ -95,5 +95,6 @@ const Bookings = () => {
     </div>
   )
 }
+
 
 export default Bookings
