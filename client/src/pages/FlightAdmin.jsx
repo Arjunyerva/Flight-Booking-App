@@ -18,7 +18,7 @@ const FlightAdmin = () => {
   const fetchUserData = async () =>{
     try{
       const id = localStorage.getItem('userId');
-      await axios.get(`http://localhost:6001/fetch-user/${id}`).then(
+      await axios.get(`https://flight-booking-app-backend-ea6i.onrender.com/fetch-user/${id}`).then(
         (response)=>{
           setUserDetails(response.data);
           console.log(response.data);
@@ -37,7 +37,7 @@ const FlightAdmin = () => {
   }, [])
 
   const fetchData = async () =>{
-    await axios.get('http://localhost:6001/fetch-bookings').then(
+    await axios.get('https://flight-booking-app-backend-ea6i.onrender.com/fetch-bookings').then(
       (response)=>{
         setbookingCount(response.data.filter(booking => booking.flightName === localStorage.getItem('username')).length);
       }
@@ -102,5 +102,6 @@ const FlightAdmin = () => {
     </div>
   )
 }
+
 
 export default FlightAdmin
