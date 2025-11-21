@@ -11,7 +11,7 @@ const FlightBookings = () => {
   const fetchUserData = async () =>{
     try{
       const id = localStorage.getItem('userId');
-      await axios.get(`http://localhost:6001/fetch-user/${id}`).then(
+      await axios.get(`https://flight-booking-app-backend-ea6i.onrender.com/fetch-user/${id}`).then(
         (response)=>{
           setUserDetails(response.data);
           console.log(response.data);
@@ -32,7 +32,7 @@ const FlightBookings = () => {
   }, [])
 
   const fetchBookings = async () =>{
-    await axios.get('http://localhost:6001/fetch-bookings').then(
+    await axios.get('https://flight-booking-app-backend-ea6i.onrender.com/fetch-bookings').then(
       (response)=>{
         setBookings(response.data.reverse());
       }
@@ -40,7 +40,7 @@ const FlightBookings = () => {
   }
 
   const cancelTicket = async (id) =>{
-    await axios.put(`http://localhost:6001/cancel-ticket/${id}`).then(
+    await axios.put(`https://flight-booking-app-backend-ea6i.onrender.com/cancel-ticket/${id}`).then(
       (response)=>{
         alert("Ticket cancelled!!");
         fetchBookings();
@@ -132,5 +132,6 @@ const FlightBookings = () => {
   )
 
 }
+
 
 export default FlightBookings
