@@ -12,7 +12,7 @@ const AllUsers = () => {
   },[]);
 
   const fetchUsers = async () =>{
-    await axios.get('http://localhost:6001/fetch-users').then(
+    await axios.get('https://flight-booking-app-backend-ea6i.onrender.com/fetch-users').then(
       (response) =>{
         setUsers(response.data);
       }
@@ -61,5 +61,6 @@ const AllUsers = () => {
     </>
   )
 }
+
 
 export default AllUsers
