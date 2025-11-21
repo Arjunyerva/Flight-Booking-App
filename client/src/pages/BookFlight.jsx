@@ -20,7 +20,7 @@ const BookFlight = () => {
     }, [])
   
     const fetchFlightData = async () =>{
-      await axios.get(`http://localhost:6001/fetch-flight/${id}`).then(
+      await axios.get(`https://flight-booking-app-backend-ea6i.onrender.com/fetch-flight/${id}`).then(
         (response) =>{
           setFlightName(response.data.flightName);
           setFlightId(response.data.flightId);
@@ -166,4 +166,5 @@ const BookFlight = () => {
       </div>
     )
   }
+
 export default BookFlight
