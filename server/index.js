@@ -1,11 +1,13 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
 import { User, Booking, Flight } from './schemas.js';
 
 const app = express();
+dotenv.config();
 
 app.use(express.json());
 app.use(bodyParser.json({limit: "30mb", extended: true}))
@@ -14,12 +16,15 @@ app.use(cors());
 
 // mongoose setup
 
-const PORT = 6001;
-mongoose.connect('mongodb://localhost:27017/FlightBookingMERN', { 
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    }
-).then(()=>{
+const PORT = process.env.PORT || 6001;
+const DB_URI = process.env.MONGODB_URI;
+
+mongoose.connect(DB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+}).then(()=>{
+
+    console.log('Connected to MongoDB successfully');
 
     // All the client-server activites
 
@@ -43,7 +48,10 @@ mongoose.connect('mongodb://localhost:27017/FlightBookingMERN', {
                 username, email, usertype, password: hashedPassword, approval
             });
             const userCreated = await newUser.save();
-            return res.status(201).json(userCreated);
+            
+            // Don't send password to client
+            const { password: _, ...userWithoutPassword } = userCreated.toObject();
+            return res.status(201).json(userWithoutPassword);
 
         } catch (error) {
           console.log(error);
@@ -64,8 +72,9 @@ mongoose.connect('mongodb://localhost:27017/FlightBookingMERN', {
             if (!isMatch) {
                 return res.status(401).json({ message: 'Invalid email or password' });
             } else{
-                
-                return res.json(user);
+                // Don't send password to client
+                const { password: _, ...userWithoutPassword } = user.toObject();
+                return res.json(userWithoutPassword);
             }
           
         } catch (error) {
@@ -82,10 +91,14 @@ mongoose.connect('mongodb://localhost:27017/FlightBookingMERN', {
         try{
             
             const user = await User.findById(id);
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
             user.approval = 'approved';
             await user.save();
             res.json({message: 'approved!'})
         }catch(err){
+            console.log(err);
             res.status(500).json({ message: 'Server Error' });
         }
     })
@@ -97,10 +110,14 @@ mongoose.connect('mongodb://localhost:27017/FlightBookingMERN', {
         try{
             
             const user = await User.findById(id);
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
             user.approval = 'rejected';
             await user.save();
             res.json({message: 'rejected!'})
         }catch(err){
+            console.log(err);
             res.status(500).json({ message: 'Server Error' });
         }
     })
@@ -109,15 +126,19 @@ mongoose.connect('mongodb://localhost:27017/FlightBookingMERN', {
     // fetch user
 
     app.get('/fetch-user/:id', async (req, res)=>{
-        const id = await req.params.id;
+        const id = req.params.id;
         console.log(req.params.id)
         try{
-            const user = await User.findById(req.params.id);
+            const user = await User.findById(id).select('-password');
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
             console.log(user);
             res.json(user);
 
         }catch(err){
             console.log(err);
+            res.status(500).json({ message: 'Server Error' });
         }
     })
 
@@ -126,10 +147,11 @@ mongoose.connect('mongodb://localhost:27017/FlightBookingMERN', {
     app.get('/fetch-users', async (req, res)=>{
 
         try{
-            const users = await User.find();
+            const users = await User.find().select('-password');
             res.json(users);
 
         }catch(err){
+            console.log(err);
             res.status(500).json({message: 'error occured'});
         }
     })
@@ -144,12 +166,13 @@ mongoose.connect('mongodb://localhost:27017/FlightBookingMERN', {
 
             const flight = new Flight({flightName, flightId, origin, destination, 
                                         departureTime, arrivalTime, basePrice, totalSeats});
-            const newFlight = flight.save();
+            await flight.save();
 
             res.json({message: 'flight added'});
 
         }catch(err){
             console.log(err);
+            res.status(500).json({ message: 'Server Error' });
         }
     })
 
@@ -161,6 +184,10 @@ mongoose.connect('mongodb://localhost:27017/FlightBookingMERN', {
         try{
 
             const flight = await Flight.findById(_id)
+            
+            if (!flight) {
+                return res.status(404).json({ message: 'Flight not found' });
+            }
 
             flight.flightName = flightName;
             flight.flightId = flightId;
@@ -171,12 +198,13 @@ mongoose.connect('mongodb://localhost:27017/FlightBookingMERN', {
             flight.basePrice = basePrice;
             flight.totalSeats = totalSeats;
 
-            const newFlight = flight.save();
+            await flight.save();
 
             res.json({message: 'flight updated'});
 
         }catch(err){
             console.log(err);
+            res.status(500).json({ message: 'Server Error' });
         }
     })
 
@@ -190,6 +218,7 @@ mongoose.connect('mongodb://localhost:27017/FlightBookingMERN', {
 
         }catch(err){
             console.log(err);
+            res.status(500).json({ message: 'Server Error' });
         }
     })
 
@@ -197,15 +226,19 @@ mongoose.connect('mongodb://localhost:27017/FlightBookingMERN', {
     // fetch flight
 
     app.get('/fetch-flight/:id', async (req, res)=>{
-        const id = await req.params.id;
+        const id = req.params.id;
         console.log(req.params.id)
         try{
-            const flight = await Flight.findById(req.params.id);
+            const flight = await Flight.findById(id);
+            if (!flight) {
+                return res.status(404).json({ message: 'Flight not found' });
+            }
             console.log(flight);
             res.json(flight);
 
         }catch(err){
             console.log(err);
+            res.status(500).json({ message: 'Server Error' });
         }
     })
 
@@ -219,6 +252,7 @@ mongoose.connect('mongodb://localhost:27017/FlightBookingMERN', {
 
         }catch(err){
             console.log(err);
+            res.status(500).json({ message: 'Server Error' });
         }
     })
 
@@ -248,6 +282,7 @@ mongoose.connect('mongodb://localhost:27017/FlightBookingMERN', {
             res.json({message: 'Booking successful!!'});
         }catch(err){
             console.log(err);
+            res.status(500).json({ message: 'Server Error' });
         }
     })
 
@@ -255,15 +290,19 @@ mongoose.connect('mongodb://localhost:27017/FlightBookingMERN', {
     // cancel ticket
 
     app.put('/cancel-ticket/:id', async (req, res)=>{
-        const id = await req.params.id;
+        const id = req.params.id;
         try{
-            const booking = await Booking.findById(req.params.id);
+            const booking = await Booking.findById(id);
+            if (!booking) {
+                return res.status(404).json({ message: 'Booking not found' });
+            }
             booking.bookingStatus = 'cancelled';
             await booking.save();
             res.json({message: "booking cancelled"});
 
         }catch(err){
             console.log(err);
+            res.status(500).json({ message: 'Server Error' });
         }
     })
 
@@ -272,8 +311,9 @@ mongoose.connect('mongodb://localhost:27017/FlightBookingMERN', {
 
 
 
-        app.listen(PORT, ()=>{
-            console.log(`Running @ ${PORT}`);
-        });
-    }
+    app.listen(PORT, ()=>{
+        console.log(`Running @ ${PORT}`);
+    });
+}
+
 ).catch((e)=> console.log(`Error in db connection ${e}`));
